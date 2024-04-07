@@ -3,6 +3,7 @@ package com.example.demo.serv;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.example.demo.entity.OtherPayment;
 import com.example.demo.entity.Payment;
 import com.example.demo.entity.Users;
+import com.example.demo.mapper.TestMapper;
+import com.example.demo.modalDTO.ModalDTO;
 import com.example.demo.repo.OtherPayRepo;
 import com.example.demo.repo.UsersRepo;
 
@@ -24,12 +27,17 @@ public class UserDataSave {
 	@Autowired
 	private OtherPayRepo othpay;
 
+	private final TestMapper mapper;
+
+	public UserDataSave(TestMapper mapper) {
+		this.mapper = mapper;
+	}
+
 	@Transactional
 	public String saveData() {
 
-		
 		Users u = new Users();
-		u.setUserId(2342434);
+		u.setUserId(234233434);
 		u.setName("ara");
 		u.setSeatNo("34");
 		Payment pay = new Payment();
@@ -40,7 +48,7 @@ public class UserDataSave {
 		List<Payment> paied = new ArrayList<Payment>();
 		paied.add(pay);
 
-		// add both of this // 
+		// add both of this //
 		pay.setUser(u);
 		u.setPayment(paied);
 		user.save(u);
@@ -69,6 +77,28 @@ public class UserDataSave {
 	public void an(Users u) {
 		OtherPayment oth = new OtherPayment(u.getUserId(), "true");
 		othpay.save(oth);
+	}
+
+	public void testMapper(ModalDTO modalDTO) {
+		System.out.println(modalDTO);
+		Users userData = mapper.toUser(modalDTO);
+		System.out.println(userData.toString());
+		
+		 // Map AddressDTOs to Address entities and set the Employee reference
+        List<Payment> payments = modalDTO.getPayment().parallelStream() //.stream()
+                .map(addressDTO -> {
+                	Payment payment = mapper.toPayment(addressDTO);
+                	payment.setCreateOn(new Date());
+                //	address.setUpdateOn(null)
+                	payment.setUser(userData);
+                    return payment;
+                })
+                .collect(Collectors.toList());
+		
+		userData.setPayment(payments);
+		
+		user.save(userData);
+
 	}
 
 }
